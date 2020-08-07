@@ -35,9 +35,8 @@
   </label>
 </template>
 <script>
-  import { useELEMENT } from '../../../src';
   import { useRadioGroup } from './radio-group.vue';
-  import { ref, computed, nextTick } from 'vue';
+  import { ref, computed, nextTick, getCurrentInstance } from 'vue';
   import { useElForm } from '../../form/src/form.vue';
   import { useElFormItem } from '../../form/src/form-item.vue';
 
@@ -51,7 +50,6 @@
     },
 
     setup(props, ctx) {
-      const ELEMENT = useELEMENT();
       const elForm = useElForm();
       const elFormItem = useElFormItem();
       const _radioGroup = useRadioGroup();
@@ -68,7 +66,7 @@
         return (elFormItem || {}).elFormItemSize;
       });
       const size = computed(() => {
-        return _radioGroup.radioGroupSize || _elFormItemSize || (ELEMENT || {}).size;
+        return _radioGroup.radioGroupSize || _elFormItemSize || (getCurrentInstance().proxy.$ELEMENT || {}).size;
       });
       const isDisabled = computed(() => {
         return props.disabled || _radioGroup.disabled || (elForm || {}).disabled;

@@ -22,8 +22,7 @@
   </button>
 </template>
 <script>
-  import { inject, computed } from 'vue';
-  import { useELEMENT } from '../../../src/index';
+  import { inject, computed, getCurrentInstance } from 'vue';
 
   export default {
     name: 'ElButton',
@@ -60,7 +59,6 @@
     },
 
     setup(props, ctx) {
-      const ELEMENT = useELEMENT();
       const elForm = inject('elForm', '');
       const elFormItem = inject('elFormItem', '');
 
@@ -68,7 +66,7 @@
         return (elFormItem || {}).elFormItemSize;
       });
       const buttonSize = computed(() => {
-        return props.size || _elFormItemSize.value || (ELEMENT || {}).size;
+        return props.size || _elFormItemSize.value || (getCurrentInstance().proxy.$ELEMENT || {}).size;
       });
       const buttonDisabled = computed(() => {
         return props.disabled || (elForm || {}).disabled;

@@ -10,7 +10,6 @@
 </template>
 <script>
   import { inject, computed, getCurrentInstance, onMounted, provide, nextTick } from 'vue';
-  import { useELEMENT } from '../../../src/index';
 
   const keyCode = Object.freeze({
     LEFT: 37,
@@ -41,7 +40,6 @@
 
     setup(props, ctx) {
   
-      const ELEMENT = useELEMENT();
       const instance = getCurrentInstance();
       const elFormItem = inject('elFormItem', '');
 
@@ -52,7 +50,7 @@
         return (instance.vnode.data || {}).tag || 'div';
       });
       const radioGroupSize = computed(() => {
-        return props.size || _elFormItemSize || (ELEMENT || {}).size;
+        return props.size || _elFormItemSize || (instance.proxy.$ELEMENT || {}).size;
       });
 
       const modelValue = computed({

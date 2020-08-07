@@ -1,6 +1,5 @@
 <script>
-  import { computed, h } from 'vue';
-  import {useELEMENT} from '../../../src';
+  import { computed, h, getCurrentInstance } from 'vue';
 
   export default {
     name: 'ElTag',
@@ -22,14 +21,12 @@
     },
 
     setup(props, ctx) {
-      const ELEMENT = useELEMENT();
-
+  
       const tagSize = computed(() => {
-        return props.size || (ELEMENT || {}).size;
+        return props.size || (getCurrentInstance().proxy.$ELEMENT || {}).size;
       });
 
       const handleClose = (event) => {
-        console.log('eee');
         event.stopPropagation();
         ctx.emit('close', event);
       };
