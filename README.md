@@ -1,9 +1,9 @@
 ### basic
 - [x] layout
 - [x] container
-- [ ] color
-- [ ] typography
-- [ ] border
+- [x] color
+- [x] typography
+- [x] border
 - [x] icon
 - [x] button
 - [x] link

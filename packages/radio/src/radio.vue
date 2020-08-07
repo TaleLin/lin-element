@@ -45,7 +45,6 @@
 <script>
   import { ref, getCurrentInstance, inject, computed } from 'vue';
   import { useRadioGroup } from './radio-group';
-  import { useELEMENT } from '../../../src/index';
   
   export default {
     name: 'ElRadio',
@@ -65,8 +64,6 @@
   
       const instance = getCurrentInstance();
 
-      console.log('parent', instance.parent);
-      const ELEMENT = useELEMENT();
       const elForm = inject('elForm', '');
       const elFormItem = inject('elFormItem', '');
 
@@ -87,7 +84,7 @@
         return (elFormItem || {}).elFormItemSize;
       });
       const radioSize = computed(() => {
-        const temRadioSize = props.size || _elFormItemSize || (ELEMENT || {}).size;
+        const temRadioSize = props.size || _elFormItemSize || (getCurrentInstance().proxy.$ELEMENT || {}).size;
         return isGroup.value
           ? _radioGroup.radioGroupSize || temRadioSize
           : temRadioSize;
