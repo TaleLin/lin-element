@@ -1,3 +1,9 @@
+# Run
+
+```
+npm run dev:play
+```
+
 ### basic
 - [x] layout
 - [x] container
@@ -33,7 +39,7 @@
 - [ ] Progress
 - [ ] Tree
 - [ ] Pagination
-- [ ] Badge
+- [x] Badge
 - [ ] Avatar
 
 ### Notice

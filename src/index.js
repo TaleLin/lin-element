@@ -51,7 +51,7 @@ import Col from '../packages/col/index.js';
 // import Progress from '../packages/progress/index.js';
 // import Spinner from '../packages/spinner/index.js';
 // import Message from '../packages/message/index.js';
-// import Badge from '../packages/badge/index.js';
+import Badge from '../packages/badge/index.js';
 // import Card from '../packages/card/index.js';
 // import Rate from '../packages/rate/index.js';
 // import Steps from '../packages/steps/index.js';
@@ -133,7 +133,7 @@ const components = [
   // Upload,
   // Progress,
   // Spinner,
-  // Badge,
+  Badge,
   // Card,
   // Rate,
   // Steps,
