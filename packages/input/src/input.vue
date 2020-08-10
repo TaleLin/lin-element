@@ -59,7 +59,6 @@
 <script>
 import { reactive, ref, computed, inject, watch, nextTick, getCurrentInstance, onMounted } from 'vue';
 import mitt from '../../../src/mixins/emitter';
-import { useELEMENT } from '../../../src/index';
 import merge from '../../../src/utils/merge';
 import calcTextareaHeight from './calcTextareaHeight';
 export default {
@@ -116,7 +115,6 @@ export default {
     // const modelValue = useModelWrapper(props, 'modelValue');
     const elForm = inject('elForm', '');
     const elFormItem = inject('elFormItem', '');
-    const $ELEMENT = useELEMENT();
     const instance = getCurrentInstance();
     let textareaCalcStyle = reactive({minHeight: '', height: ''});
     let hovering = ref(false);
@@ -144,7 +142,7 @@ export default {
       return merge({}, textareaCalcStyle, { resize: props.resize });
     });
     let inputSize = computed(() => {
-      return props.size || _elFormItemSize.value || ($ELEMENT || {}).size;
+      return props.size || _elFormItemSize.value || (instance.proxy.$ELEMENT || {}).size;
     });
     const inputDisabled = computed(() => {
       return props.disabled || (elForm || {}).disabled;
@@ -281,6 +279,7 @@ export default {
       textareaCalcStyle.height = height;
       textareaCalcStyle.minHeight = minHeight;
     };
+    // TODO: 抽离 useModelWrapper 函数
     const useModelWrapper = (props, name = 'modelValue') => {
       return computed({
         get: () => props[name],
