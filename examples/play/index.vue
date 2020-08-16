@@ -8,10 +8,10 @@
     <play-radio v-if="route.value === '#radio'"></play-radio>
     <play-switch v-if="route.value === '#switch'"></play-switch>
     <play-avatar v-if="route.value === '#avatar'"></play-avatar>
-    <!-- <play-select v-if="route.value === '#select'"></play-select> -->
+    <play-select v-if="route.value === '#select'"></play-select>
     <play-tag v-if="route.value === '#tag'"></play-tag>
     <play-alert v-if="route.value === '#alert'"></play-alert>
-    <play-badge v-if="route.value"></play-badge>
+    <play-badge v-if="route.value === '#badge'"></play-badge>
   </div>
 </template>
 
@@ -24,7 +24,7 @@
   import PlayRadio from './components/radio'
   import PlaySwitch from './components/switch'
   import PlayAvatar from './components/atvatar'
-  // import PlaySelect from './components/select'
+  import PlaySelect from './components/select'
   import PlayTag from './components/tag'
   import PlayAlert from './components/alert'
   import PlayBadge from './components/badge'
@@ -41,7 +41,7 @@
       PlayRadio,
       PlaySwitch,
       PlayAvatar,
-      // PlaySelect,
+      PlaySelect,
       PlayTag,
       PlayAlert,
       PlayBadge

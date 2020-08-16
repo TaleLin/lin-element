@@ -143,13 +143,14 @@
     },
 
     created() {
+      console.log(this, 'this');
       this.select.options.push(this);
       this.select.cachedOptions.push(this);
       this.select.optionsCount++;
       this.select.filteredOptionsCount++;
 
-      this.$on('queryChange', this.queryChange);
-      this.$on('handleGroupDisabled', this.handleGroupDisabled);
+      // this.$on('queryChange', this.queryChange);
+      // this.$on('handleGroupDisabled', this.handleGroupDisabled);
     },
 
     beforeDestroy() {

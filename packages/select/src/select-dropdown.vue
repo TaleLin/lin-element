@@ -63,6 +63,7 @@
     },
 
     mounted() {
+      console.log(this.$parent.$refs, 'this.$parent.$refs');
       this.referenceElm = this.$parent.$refs.reference.$el;
       this.$parent.popperElm = this.popperElm = this.$el;
       this.$on('updatePopper', () => {
