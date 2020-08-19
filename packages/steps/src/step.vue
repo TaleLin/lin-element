@@ -73,6 +73,7 @@ export default {
   },
 
   beforeCreate() {
+    console.log('el-step: beforeCreate, this.$parent.steps.push(this);');
     this.$parent.steps.push(this);
   },
 

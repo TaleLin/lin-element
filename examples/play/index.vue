@@ -11,45 +11,48 @@
     <!-- <play-select v-if="route.value === '#select'"></play-select> -->
     <play-tag v-if="route.value === '#tag'"></play-tag>
     <play-alert v-if="route.value === '#alert'"></play-alert>
-    <play-badge v-if="route.value"></play-badge>
+    <play-badge v-if="route.value === '#badge'"></play-badge>
+    <play-steps v-if="route.value === '#steps'"></play-steps>
   </div>
 </template>
 
 <script>
-  import PlayButton from './components/button'
-  import PlayIcon from './components/icon'
-  import PlayLink from './components/link'
-  import PlayContainer from './components/container'
-  import PlayLayout from './components/layout'
-  import PlayRadio from './components/radio'
-  import PlaySwitch from './components/switch'
-  import PlayAvatar from './components/atvatar'
-  // import PlaySelect from './components/select'
-  import PlayTag from './components/tag'
-  import PlayAlert from './components/alert'
-  import PlayBadge from './components/badge'
+import PlayButton from "./components/button";
+import PlayIcon from "./components/icon";
+import PlayLink from "./components/link";
+import PlayContainer from "./components/container";
+import PlayLayout from "./components/layout";
+import PlayRadio from "./components/radio";
+import PlaySwitch from "./components/switch";
+import PlayAvatar from "./components/atvatar";
+// import PlaySelect from './components/select'
+import PlayTag from "./components/tag";
+import PlayAlert from "./components/alert";
+import PlayBadge from "./components/badge";
+import PlaySteps from "./components/steps";
 
-  import useRoute from './route'
+import useRoute from "./route";
 
-  export default {
-    components: {
-      PlayButton,
-      PlayIcon,
-      PlayLink,
-      PlayContainer,
-      PlayLayout,
-      PlayRadio,
-      PlaySwitch,
-      PlayAvatar,
-      // PlaySelect,
-      PlayTag,
-      PlayAlert,
-      PlayBadge
-    },
-    data() {
-      return {
-        route: useRoute()
-      };
-    },
-  };
+export default {
+  components: {
+    PlayButton,
+    PlayIcon,
+    PlayLink,
+    PlayContainer,
+    PlayLayout,
+    PlayRadio,
+    PlaySwitch,
+    PlayAvatar,
+    // PlaySelect,
+    PlayTag,
+    PlayAlert,
+    PlayBadge,
+    PlaySteps,
+  },
+  data() {
+    return {
+      route: useRoute(),
+    };
+  },
+};
 </script>

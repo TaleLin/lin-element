@@ -59,6 +59,7 @@ export default {
     },
 
     steps(steps) {
+      console.log('watch');
       steps.forEach((child, index) => {
         child.index = index;
       });
