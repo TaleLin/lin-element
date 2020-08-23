@@ -1,10 +1,10 @@
 import { once, on } from 'element-ui/src/utils/dom';
 
 export default {
-  bind(el, binding, vnode) {
+  beforeMount(el, binding) {
     let interval = null;
     let startTime;
-    const handler = () => vnode.context[binding.expression].apply();
+    const handler = () => binding.value.apply();
     const clear = () => {
       if (Date.now() - startTime < 100) {
         handler();
