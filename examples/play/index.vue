@@ -11,7 +11,8 @@
     <!-- <play-select v-if="route.value === '#select'"></play-select> -->
     <play-tag v-if="route.value === '#tag'"></play-tag>
     <play-alert v-if="route.value === '#alert'"></play-alert>
-    <play-badge v-if="route.value"></play-badge>
+    <play-badge v-if="route.value === '#badge'"></play-badge>
+    <play-rate v-if="route.value === '#rate'"></play-rate>
   </div>
 </template>
 
@@ -28,6 +29,7 @@
   import PlayTag from './components/tag'
   import PlayAlert from './components/alert'
   import PlayBadge from './components/badge'
+  import PlayRate from './components/rate'
 
   import useRoute from './route'
 
@@ -44,7 +46,8 @@
       // PlaySelect,
       PlayTag,
       PlayAlert,
-      PlayBadge
+      PlayBadge,
+      PlayRate
     },
     data() {
       return {
