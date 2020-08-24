@@ -19,9 +19,9 @@ import RadioButton from '../packages/radio-button/index.js';
 // import CheckboxButton from '../packages/checkbox-button/index.js';
 // import CheckboxGroup from '../packages/checkbox-group/index.js';
 import Switch from '../packages/switch/index.js';
-import Select from '../packages/select/index.js';
-import Option from '../packages/option/index.js';
-import OptionGroup from '../packages/option-group/index.js';
+// import Select from '../packages/select/index.js';
+// import Option from '../packages/option/index.js';
+// import OptionGroup from '../packages/option-group/index.js';
 import Button from '../packages/button/index.js';
 // import ButtonGroup from '../packages/button-group/index.js';
 // import Table from '../packages/table/index.js';
@@ -105,9 +105,9 @@ const components = [
   // CheckboxButton,
   // CheckboxGroup,
   Switch,
-  Select,
-  Option,
-  OptionGroup,
+  // Select,
+  // Option,
+  // OptionGroup,
   Button,
   // ButtonGroup,
   // Table,
@@ -223,9 +223,9 @@ export default {
   // CheckboxButton,
   // CheckboxGroup,
   Switch,
-  Select,
-  Option,
-  OptionGroup,
+  // Select,
+  // Option,
+  // OptionGroup,
   Button,
   // ButtonGroup,
   // Table,

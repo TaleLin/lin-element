@@ -16,12 +16,10 @@
 </template>
 
 <script type="text/babel">
-  import Emitter from 'element-ui/src/mixins/emitter';
+  import emitter from 'element-ui/src/mixins/emitter';
   import { getValueByPath, escapeRegexpString } from 'element-ui/src/utils/util';
 
   export default {
-    mixins: [Emitter],
-
     name: 'ElOption',
 
     componentName: 'ElOption',
@@ -143,14 +141,13 @@
     },
 
     created() {
-      console.log(this, 'this');
       this.select.options.push(this);
       this.select.cachedOptions.push(this);
       this.select.optionsCount++;
       this.select.filteredOptionsCount++;
 
-      // this.$on('queryChange', this.queryChange);
-      // this.$on('handleGroupDisabled', this.handleGroupDisabled);
+      emitter.on('queryChange', this.queryChange);
+      emitter.on('handleGroupDisabled', this.handleGroupDisabled);
     },
 
     beforeDestroy() {
