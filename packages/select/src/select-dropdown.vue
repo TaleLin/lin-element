@@ -58,11 +58,14 @@
 
     watch: {
       '$parent.inputWidth'() {
+        console.log('this.$parent', this.$parent);
+  
         this.minWidth = this.$parent.$el.getBoundingClientRect().width + 'px';
       }
     },
 
     mounted() {
+      console.log(this.$parent.refs, 'this.$parent.$refs');
       this.referenceElm = this.$parent.$refs.reference.$el;
       this.$parent.popperElm = this.popperElm = this.$el;
       this.$on('updatePopper', () => {
