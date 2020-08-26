@@ -53,7 +53,7 @@ import Col from '../packages/col/index.js';
 // import Message from '../packages/message/index.js';
 import Badge from '../packages/badge/index.js';
 // import Card from '../packages/card/index.js';
-// import Rate from '../packages/rate/index.js';
+import Rate from '../packages/rate/index.js';
 // import Steps from '../packages/steps/index.js';
 // import Step from '../packages/step/index.js';
 // import Carousel from '../packages/carousel/index.js';
@@ -135,7 +135,7 @@ const components = [
   // Spinner,
   Badge,
   // Card,
-  // Rate,
+  Rate,
   // Steps,
   // Step,
   // Carousel,
@@ -256,7 +256,7 @@ export default {
   // Message,
   // Badge,
   // Card,
-  // Rate,
+  Rate,
   // Steps,
   // Step,
   // Carousel,
