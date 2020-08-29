@@ -122,6 +122,8 @@
           </el-option>
           <slot></slot>
         </el-scrollbar>
+
+        <!-- 空值-->
         <template v-if="emptyText && (!allowCreate || loading || (allowCreate && options.length === 0 ))">
           <slot name="empty" v-if="$slots.empty"></slot>
           <p class="el-select-dropdown__empty" v-else>
@@ -134,7 +136,7 @@
 </template>
 
 <script type="text/babel">
-  import Emitter from 'element-ui/src/mixins/emitter';
+  import emitter from 'element-ui/src/mixins/emitter';
   import Focus from 'element-ui/src/mixins/focus';
   import Locale from 'element-ui/src/mixins/locale';
   import ElInput from 'element-ui/packages/input';
@@ -152,7 +154,7 @@
   import { isKorean } from 'element-ui/src/utils/shared';
 
   export default {
-    mixins: [Emitter, Locale, Focus('reference'), NavigationMixin],
+    mixins: [ Locale, Focus('reference'), NavigationMixin],
 
     name: 'ElSelect',
 
@@ -185,8 +187,8 @@
 
       showClose() {
         let hasValue = this.multiple
-          ? Array.isArray(this.value) && this.value.length > 0
-          : this.value !== undefined && this.value !== null && this.value !== '';
+          ? Array.isArray(this.modelValue) && this.modelValue.length > 0
+          : this.modelValue !== undefined && this.modelValue !== null && this.modelValue !== '';
         let criteria = this.clearable &&
           !this.selectDisabled &&
           this.inputHovering &&
@@ -251,7 +253,7 @@
     props: {
       name: String,
       id: String,
-      value: {
+      modelValue: {
         required: true
       },
       autocomplete: {
@@ -423,7 +425,7 @@
       },
 
       options() {
-        if (this.$isServer) return;
+        // if (this.$isServer) return;
         this.$nextTick(() => {
           this.broadcast('ElSelectDropdown', 'updatePopper');
         });
@@ -503,7 +505,7 @@
       },
 
       emitChange(val) {
-        if (!valueEquals(this.value, val)) {
+        if (!valueEquals(this.modelValue, val)) {
           this.$emit('change', val);
         }
       },
@@ -537,9 +539,12 @@
         return newOption;
       },
 
+      /**
+       * 根据 Select value 值判断初始选中情况
+       */
       setSelected() {
         if (!this.multiple) {
-          let option = this.getOption(this.value);
+          let option = this.getOption(this.modelValue);
           if (option.created) {
             this.createdLabel = option.currentLabel;
             this.createdSelected = true;
@@ -552,8 +557,8 @@
           return;
         }
         let result = [];
-        if (Array.isArray(this.value)) {
-          this.value.forEach(value => {
+        if (Array.isArray(this.modelValue)) {
+          this.modelValue.forEach(value => {
             result.push(this.getOption(value));
           });
         }
@@ -621,7 +626,7 @@
 
       deletePrevTag(e) {
         if (e.target.value.length <= 0 && !this.toggleLastOptionHitState()) {
-          const value = this.value.slice();
+          const value = this.modelValue.slice();
           value.pop();
           this.$emit('input', value);
           this.emitChange(value);
@@ -674,9 +679,14 @@
         }, 300);
       },
 
+      /**
+       * 唤起 options 面板
+       * @param option
+       * @param byClick
+       */
       handleOptionSelect(option, byClick) {
         if (this.multiple) {
-          const value = (this.value || []).slice();
+          const value = (this.modelValue || []).slice();
           const optionIndex = this.getValueIndex(value, option.value);
           if (optionIndex > -1) {
             value.splice(optionIndex, 1);
@@ -765,7 +775,7 @@
       deleteTag(event, tag) {
         let index = this.selected.indexOf(tag);
         if (index > -1 && !this.selectDisabled) {
-          const value = this.value.slice();
+          const value = this.modelValue.slice();
           value.splice(index, 1);
           this.$emit('input', value);
           this.emitChange(value);
@@ -839,10 +849,10 @@
 
     created() {
       this.cachedPlaceHolder = this.currentPlaceholder = this.placeholder;
-      if (this.multiple && !Array.isArray(this.value)) {
+      if (this.multiple && !Array.isArray(this.modelValue)) {
         this.$emit('input', []);
       }
-      if (!this.multiple && Array.isArray(this.value)) {
+      if (!this.multiple && Array.isArray(this.modelValue)) {
         this.$emit('input', '');
       }
 
@@ -854,12 +864,12 @@
         this.handleQueryChange(e.target.value);
       });
 
-      this.$on('handleOptionClick', this.handleOptionSelect);
-      this.$on('setSelected', this.setSelected);
+      emitter.on('handleOptionClick', this.handleOptionSelect);
+      emitter.on('setSelected', this.setSelected);
     },
 
     mounted() {
-      if (this.multiple && Array.isArray(this.value) && this.value.length > 0) {
+      if (this.multiple && Array.isArray(this.modelValue) && this.modelValue.length > 0) {
         this.currentPlaceholder = '';
       }
       addResizeListener(this.$el, this.handleResize);
