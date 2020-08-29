@@ -293,7 +293,7 @@ export default {
       if (props.validateEvent) {
         mitt.emit('el.form.change', [val]);
       }
-    });
+    }, { immediate: true });
     watch(type, () => {
       setNativeInputValue();
       resizeTextarea();
