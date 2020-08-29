@@ -35,12 +35,10 @@
 <script>
   import { hasClass } from 'element-ui/src/utils/dom';
   import { isObject } from 'element-ui/src/utils/types';
-  import Migrating from 'element-ui/src/mixins/migrating';
+  import { inject, reactive, computed, watch } from 'vue';
 
   export default {
     name: 'ElRate',
-
-    mixins: [Migrating],
 
     inject: {
       elForm: {
@@ -48,16 +46,8 @@
       }
     },
 
-    data() {
-      return {
-        pointerAtLeftHalf: true,
-        currentValue: this.value,
-        hoverIndex: -1
-      };
-    },
-
     props: {
-      value: {
+      modelValue: {
         type: Number,
         default: 0
       },
@@ -129,112 +119,105 @@
       },
       scoreTemplate: {
         type: String,
-        default: '{value}'
+        default: '{modelValue}'
       }
     },
+    setup(props, ctx) {
 
-    computed: {
-      text() {
+      if (!props.modelValue) {
+        ctx.emit('update:modelValue', 0);
+      }
+
+      const elForm = inject('elForm', '');
+
+      const state = reactive({
+        pointerAtLeftHalf: true,
+        currentValue: props.modelValue,
+        hoverIndex: -1
+      });
+      const text = computed(() => {
         let result = '';
-        if (this.showScore) {
-          result = this.scoreTemplate.replace(/\{\s*value\s*\}/, this.rateDisabled
-            ? this.value
-            : this.currentValue);
-        } else if (this.showText) {
-          result = this.texts[Math.ceil(this.currentValue) - 1];
+        if (props.showScore) {
+          result = props.scoreTemplate.replace(/\{\s*modelValue\s*\}/, rateDisabled.value
+            ? props.modelValue
+            : state.currentValue);
+        } else if (props.showText) {
+          result = props.texts[Math.ceil(state.currentValue) - 1];
         }
         return result;
-      },
+      });
 
-      decimalStyle() {
+      const rateDisabled = computed(() => {
+        return !!(props.disabled || (elForm || {}).disabled);
+      });
+
+      const valueDecimal = computed(() => {
+        return props.modelValue * 100 - Math.floor(props.modelValue) * 100;
+      });
+      const decimalStyle = computed(() => {
         let width = '';
-        if (this.rateDisabled) {
-          width = `${ this.valueDecimal }%`;
-        } else if (this.allowHalf) {
+        if (rateDisabled.value) {
+          width = `${ valueDecimal.value }%`;
+        } else if (props.allowHalf) {
           width = '50%';
         }
         return {
-          color: this.activeColor,
+          color: activeColor.value,
           width
         };
-      },
+      });
 
-      valueDecimal() {
-        return this.value * 100 - Math.floor(this.value) * 100;
-      },
+      const activeColor = computed(() => {
+        return getValueFromMap(state.currentValue, colorMap.value);
+      });
 
-      classMap() {
-        return Array.isArray(this.iconClasses)
+      const colorMap = computed(() => {
+        return Array.isArray(props.colors)
           ? {
-            [this.lowThreshold]: this.iconClasses[0],
-            [this.highThreshold]: { value: this.iconClasses[1], excluded: true },
-            [this.max]: this.iconClasses[2]
-          } : this.iconClasses;
-      },
+            [props.lowThreshold]: props.colors[0],
+            [props.highThreshold]: { value: props.colors[1], excluded: true },
+            [props.max]: props.colors[2]
+          } : props.colors;
+      });
 
-      decimalIconClass() {
-        return this.getValueFromMap(this.value, this.classMap);
-      },
-
-      voidClass() {
-        return this.rateDisabled ? this.disabledVoidIconClass : this.voidIconClass;
-      },
-
-      activeClass() {
-        return this.getValueFromMap(this.currentValue, this.classMap);
-      },
-
-      colorMap() {
-        return Array.isArray(this.colors)
+      const classMap = computed(() => {
+        return Array.isArray(props.iconClasses)
           ? {
-            [this.lowThreshold]: this.colors[0],
-            [this.highThreshold]: { value: this.colors[1], excluded: true },
-            [this.max]: this.colors[2]
-          } : this.colors;
-      },
+            [props.lowThreshold]: props.iconClasses[0],
+            [props.highThreshold]: { value: props.iconClasses[1], excluded: true },
+            [props.max]: props.iconClasses[2]
+          } : props.iconClasses;
+      });
 
-      activeColor() {
-        return this.getValueFromMap(this.currentValue, this.colorMap);
-      },
+      const decimalIconClass = computed(() => {
+        return getValueFromMap(props.modelValue, classMap.value);
+      });
 
-      classes() {
+      const voidClass = computed(() => {
+        return rateDisabled.value ? props.disabledVoidIconClass : props.voidIconClass;
+      });
+
+      const activeClass = computed(() => {
+        return getValueFromMap(state.currentValue, classMap.value);
+      });
+
+      const classes = computed(() => {
         let result = [];
         let i = 0;
-        let threshold = this.currentValue;
-        if (this.allowHalf && this.currentValue !== Math.floor(this.currentValue)) {
+        let threshold = state.currentValue;
+        if (props.allowHalf && state.currentValue !== Math.floor(state.currentValue)) {
           threshold--;
         }
         for (; i < threshold; i++) {
-          result.push(this.activeClass);
+          result.push(activeClass.value);
         }
-        for (; i < this.max; i++) {
-          result.push(this.voidClass);
+        for (; i < props.max; i++) {
+          result.push(voidClass.value);
         }
         return result;
-      },
+      });
 
-      rateDisabled() {
-        return this.disabled || (this.elForm || {}).disabled;
-      }
-    },
-
-    watch: {
-      value(val) {
-        this.currentValue = val;
-        this.pointerAtLeftHalf = this.value !== Math.floor(this.value);
-      }
-    },
-
-    methods: {
-      getMigratingConfig() {
-        return {
-          props: {
-            'text-template': 'text-template is renamed to score-template.'
-          }
-        };
-      },
-
-      getValueFromMap(value, map) {
+      const getValueFromMap = (value, map) => {
         const matchedKeys = Object.keys(map)
           .filter(key => {
             const val = map[key];
@@ -244,46 +227,46 @@
           .sort((a, b) => a - b);
         const matchedValue = map[matchedKeys[0]];
         return isObject(matchedValue) ? matchedValue.value : (matchedValue || '');
-      },
+      };
 
-      showDecimalIcon(item) {
-        let showWhenDisabled = this.rateDisabled && this.valueDecimal > 0 && item - 1 < this.value && item > this.value;
-        /* istanbul ignore next */
-        let showWhenAllowHalf = this.allowHalf &&
-          this.pointerAtLeftHalf &&
-          item - 0.5 <= this.currentValue &&
-          item > this.currentValue;
-        return showWhenDisabled || showWhenAllowHalf;
-      },
-
-      getIconStyle(item) {
-        const voidColor = this.rateDisabled ? this.disabledVoidColor : this.voidColor;
+      const getIconStyle = (item) => {
+        const voidColor = rateDisabled.value ? props.disabledVoidColor : props.voidColor;
         return {
-          color: item <= this.currentValue ? this.activeColor : voidColor
+          color: item <= state.currentValue ? activeColor.value : voidColor
         };
-      },
+      };
 
-      selectValue(value) {
-        if (this.rateDisabled) {
+      const showDecimalIcon = (item) => {
+        let showWhenDisabled = rateDisabled.value && valueDecimal.value > 0 && item - 1 < props.modelValue && item > props.modelValue;
+        /* istanbul ignore next */
+        let showWhenAllowHalf = props.allowHalf &&
+          state.pointerAtLeftHalf &&
+          item - 0.5 <= props.currentValue &&
+          item > props.currentValue;
+        return showWhenDisabled || showWhenAllowHalf;
+      };
+
+      const selectValue = (value) => {
+        if (rateDisabled.value) {
           return;
         }
-        if (this.allowHalf && this.pointerAtLeftHalf) {
-          this.$emit('input', this.currentValue);
-          this.$emit('change', this.currentValue);
+        if (props.allowHalf && state.pointerAtLeftHalf) {
+          ctx.emit('update:modelValue', state.currentValue);
+          ctx.emit('change', state.currentValue);
         } else {
-          this.$emit('input', value);
-          this.$emit('change', value);
+          ctx.emit('update:modelValue', value);
+          ctx.emit('change', value);
         }
-      },
+      };
 
-      handleKey(e) {
-        if (this.rateDisabled) {
+      const handleKey = (e) => {
+        if (rateDisabled.value) {
           return;
         }
-        let currentValue = this.currentValue;
+        let currentValue = state.currentValue;
         const keyCode = e.keyCode;
         if (keyCode === 38 || keyCode === 39) { // left / down
-          if (this.allowHalf) {
+          if (props.allowHalf) {
             currentValue += 0.5;
           } else {
             currentValue += 1;
@@ -291,7 +274,7 @@
           e.stopPropagation();
           e.preventDefault();
         } else if (keyCode === 37 || keyCode === 40) {
-          if (this.allowHalf) {
+          if (props.allowHalf) {
             currentValue -= 0.5;
           } else {
             currentValue -= 1;
@@ -300,18 +283,18 @@
           e.preventDefault();
         }
         currentValue = currentValue < 0 ? 0 : currentValue;
-        currentValue = currentValue > this.max ? this.max : currentValue;
+        currentValue = currentValue > props.max ? props.max : currentValue;
 
-        this.$emit('input', currentValue);
-        this.$emit('change', currentValue);
-      },
+        ctx.emit('update:modelValue', currentValue);
+        ctx.emit('change', currentValue);
+      };
 
-      setCurrentValue(value, event) {
-        if (this.rateDisabled) {
+      const setCurrentValue = (value, event) =>{
+        if (rateDisabled.value) {
           return;
         }
         /* istanbul ignore if */
-        if (this.allowHalf) {
+        if (props.allowHalf) {
           let target = event.target;
           if (hasClass(target, 'el-rate__item')) {
             target = target.querySelector('.el-rate__icon');
@@ -319,30 +302,45 @@
           if (hasClass(target, 'el-rate__decimal')) {
             target = target.parentNode;
           }
-          this.pointerAtLeftHalf = event.offsetX * 2 <= target.clientWidth;
-          this.currentValue = this.pointerAtLeftHalf ? value - 0.5 : value;
+          state.pointerAtLeftHalf = event.offsetX * 2 <= target.clientWidth;
+          state.currentValue = state.pointerAtLeftHalf ? value - 0.5 : value;
         } else {
-          this.currentValue = value;
+          state.currentValue = value;
         }
-        this.hoverIndex = value;
-      },
+        state.hoverIndex = value;
+      };
 
-      resetCurrentValue() {
-        if (this.rateDisabled) {
+      const resetCurrentValue = () => {
+        if (rateDisabled.value) {
           return;
         }
-        if (this.allowHalf) {
-          this.pointerAtLeftHalf = this.value !== Math.floor(this.value);
+        if (props.allowHalf) {
+          state.pointerAtLeftHalf = props.modelValue !== Math.floor(props.modelValue);
         }
-        this.currentValue = this.value;
-        this.hoverIndex = -1;
-      }
-    },
+        state.currentValue = props.modelValue;
+        state.hoverIndex = -1;
+      };
 
-    created() {
-      if (!this.value) {
-        this.$emit('input', 0);
-      }
+      watch(() => props.modelValue, () => {
+        state.currentValue = props.modelValue;
+        state.pointerAtLeftHalf = props.modelValue !== Math.floor(props.modelValue);
+      });
+
+      return {
+        ...state,
+        text,
+        rateDisabled,
+        decimalStyle,
+        decimalIconClass,
+        classes,
+        getIconStyle,
+        showDecimalIcon,
+        selectValue,
+        handleKey,
+        setCurrentValue,
+        resetCurrentValue
+      };
     }
+
   };
 </script>
