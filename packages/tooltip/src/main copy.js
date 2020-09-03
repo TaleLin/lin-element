@@ -1,12 +1,14 @@
-
+// import Popper from 'element-ui/src/utils/vue-popper';
 import debounce from 'throttle-debounce/debounce';
 import { addClass, removeClass, on, off } from 'element-ui/src/utils/dom';
 import { generateId } from 'element-ui/src/utils/util';
-import { h, ref, Transition, getCurrentInstance, watch, onMounted, onBeforeUnmount, onUnmounted, Fragment, Teleport } from 'vue';
+import { createApp, h, ref, Transition, getCurrentInstance, watch, onMounted, onBeforeUnmount, onUnmounted } from 'vue';
 import usePopper from 'element-ui/src/composables/popper';
 
 export default {
   name: 'ElTooltip',
+
+  // mixin: [Popper],
 
   props: {
     openDelay: {
@@ -25,8 +27,6 @@ export default {
     },
     popperClass: String,
     content: String,
-
-    placement: String,
     visibleArrow: {
       default: true
     },
@@ -42,10 +42,6 @@ export default {
         };
       }
     },
-    transformOrigin: {
-      type: [Boolean, String],
-      default: true
-    },
     enterable: {
       type: Boolean,
       default: true
@@ -57,10 +53,6 @@ export default {
     tabindex: {
       type: Number,
       default: 0
-    },
-    offset: {
-      type: Number,
-      default: 0
     }
   },
 
@@ -69,20 +61,66 @@ export default {
     const tooltipId = ref(`el-tooltip-${generateId()}`);
     const timeoutPending = ref(null);
     const focusing = ref(false);
-    let expectedState;
-    let timeout;
+    const tooltip = document.createElement('div');
     let referenceElm;
-    const { popperRef, showPopper, doDestroy } = usePopper(props, ctx);
+    let disabled;
+    let showPopper;
+    let expectedState;
+    let manual;
+    let timeout;
+    const { updatePopper } = usePopper(vm);
+
+    tooltip.setAttribute('id', tooltipId.value);
+    document.body.insertBefore(tooltip, document.getElementById('app'));
+    let popperVM = createApp({
+      data() {
+        return {
+          node: h('div', {}, '')
+        };
+      },
+      render() {
+        return this.node;
+      }
+    });
     const debounceClose = debounce(200, () => handleClosePopper());
 
     onMounted(() => {
-      referenceElm = vm.subTree.children[0].children[0].el;
+      popperVM = popperVM.mount(`#${tooltipId.value}`);
+      if (popperVM) {
+        popperVM.node =
+          h(Transition, {
+            name: props.transition
+            // onAfterLeave: this.doDestroy
+          }, [
+            h(
+              'div',
+              {
+                onmouseenter: () => {
+                  setExpectedState(false);
+                  debounceClose();
+                },
+                onmouseleave: () => { setExpectedState(true); },
+                ref: 'popperRef',
+                class: ['el-tooltip__popper', 'is-' + props.effect, props.popperClass],
+                role: 'tooltip',
+                id: tooltipId.value,
+                ariaHidden: disabled || !showPopper ? 'true' : 'false'
+              },
+              vm.slots.content || props.content
+            )
+          ]);
+        vm.popperVM = popperVM;
+      }
+
+      referenceElm = vm.vnode.el;
       if (referenceElm) {
         referenceElm.setAttribute('aria-describedby', tooltipId.value);
         referenceElm.setAttribute('tabindex', props.tabindex);
         on(referenceElm, 'mouseenter', show);
         on(referenceElm, 'mouseleave', hide);
         on(referenceElm, 'focus', () => {
+          // eslint-disable-next-line no-debugger
+          debugger;
           if (!vm.slots.default || !vm.slots.default.length) {
             handleFocus();
             return;
@@ -105,6 +143,9 @@ export default {
       //     }
       //   });
       // }
+      // eslint-disable-next-line no-debugger
+      debugger;
+      updatePopper();
     });
 
     function show() {
@@ -137,31 +178,33 @@ export default {
     }
 
     function handleShowPopper() {
-      if (!expectedState || props.manual) return;
+      // eslint-disable-next-line no-debugger
+      debugger;
+      if (!expectedState || manual) return;
       clearTimeout(timeout);
       timeout = setTimeout(() => {
-        showPopper.value = true;
+        showPopper = true;
       }, props.openDelay);
 
       if (props.hideAfter > 0) {
         timeoutPending.value = setTimeout(() => {
-          showPopper.value = false;
+          showPopper = false;
         }, props.hideAfter);
       }
     }
 
     function handleClosePopper() {
-      if (expectedState || props.manual) return;
+      // this.enterable &&
+      if (expectedState || manual) return;
       clearTimeout(timeout);
 
       if (timeoutPending.value) {
         clearTimeout(timeoutPending.value);
       }
+      showPopper = false;
 
-      showPopper.value = false;
-
-      if (props.disabled) {
-        doDestroy();
+      if (disabled) {
+        // doDestroy();
       }
     }
 
@@ -195,7 +238,7 @@ export default {
       }
     );
 
-    onBeforeUnmount(() => document.body.removeChild(popperRef.value));
+    onBeforeUnmount(() => popperVM && popperVM.$destroy());
 
     onUnmounted(() => {
       const reference = referenceElm;
@@ -214,54 +257,11 @@ export default {
 
     const data = firstElement.data = firstElement.data || {};
     data.staticClass = addTooltipClass(data.staticClass);
-    return {
-      showPopper,
-      popperRef,
-      tooltipId,
-      setExpectedState,
-      debounceClose,
-      doDestroy
+    return () => {
+      return firstElement;
     };
   },
   render() {
-    return h(
-      Fragment,
-      null,
-      [
-        this.$slots.default(),
-        h(
-          Teleport,
-          {
-            to: 'body'
-          },
-          h(
-            Transition,
-            {
-              name: this.transition,
-              onAfterLeave: this.doDestroy
-            },
-            [
-              h(
-                'div',
-                {
-                  onmouseenter: () => {
-                    this.setExpectedState(false);
-                    this.debounceClose();
-                  },
-                  onmouseleave: () => { this.setExpectedState(true); },
-                  ref: 'popperRef',
-                  class: ['el-tooltip__popper', 'is-' + this.effect, this.popperClass],
-                  role: 'tooltip',
-                  id: this.tooltipId,
-                  ariaHidden: this.disabled || !this.showPopper ? 'true' : 'false',
-                  style: { display: 'none' }
-                },
-                [this.$slots.content || this.content]
-              )
-            ]
-          )
-        )
-      ]
-    );
+    return h('123');
   }
 };
