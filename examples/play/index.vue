@@ -14,6 +14,8 @@
     <play-badge v-if="route.value === '#badge'"></play-badge>
     <play-scrollbar v-if="route.value === '#scrollbar'"></play-scrollbar>
     <play-rate v-if="route.value === '#rate'"></play-rate>
+    <play-badge v-if="route.value"></play-badge>
+    <play-tool-tip ></play-tool-tip>
   </div>
 </template>
 
@@ -32,6 +34,7 @@
   import PlayBadge from './components/badge'
   import PlayScrollbar from './components/scrollbar'
   import PlayRate from './components/rate'
+  import PlayToolTip from './components/tooltip'
 
   import useRoute from './route'
 
@@ -50,7 +53,8 @@
       PlayAlert,
       PlayBadge,
       PlayScrollbar,
-      PlayRate
+      PlayRate,
+      PlayToolTip
     },
     data() {
       return {

@@ -1,13 +1,12 @@
-import Popper from 'element-ui/src/utils/vue-popper';
+
 import debounce from 'throttle-debounce/debounce';
 import { addClass, removeClass, on, off } from 'element-ui/src/utils/dom';
 import { generateId } from 'element-ui/src/utils/util';
-import Vue from 'vue';
+import { h, ref, Transition, getCurrentInstance, watch, onMounted, onBeforeUnmount, onUnmounted, Fragment, Teleport } from 'vue';
+import usePopper from 'element-ui/src/composables/popper';
 
 export default {
   name: 'ElTooltip',
-
-  mixins: [Popper],
 
   props: {
     openDelay: {
@@ -26,6 +25,8 @@ export default {
     },
     popperClass: String,
     content: String,
+
+    placement: String,
     visibleArrow: {
       default: true
     },
@@ -41,6 +42,10 @@ export default {
         };
       }
     },
+    transformOrigin: {
+      type: [Boolean, String],
+      default: true
+    },
     enterable: {
       type: Boolean,
       default: true
@@ -52,190 +57,211 @@ export default {
     tabindex: {
       type: Number,
       default: 0
+    },
+    offset: {
+      type: Number,
+      default: 0
     }
   },
 
-  data() {
-    return {
-      tooltipId: `el-tooltip-${generateId()}`,
-      timeoutPending: null,
-      focusing: false
-    };
-  },
-  beforeCreate() {
-    if (this.$isServer) return;
+  setup(props, ctx) {
+    const vm = getCurrentInstance();
+    const tooltipId = ref(`el-tooltip-${generateId()}`);
+    const timeoutPending = ref(null);
+    const focusing = ref(false);
+    let expectedState;
+    let timeout;
+    let referenceElm;
+    const { popperRef, showPopper, doDestroy } = usePopper(props, ctx);
+    const debounceClose = debounce(200, () => handleClosePopper());
 
-    this.popperVM = new Vue({
-      data: { node: '' },
-      render(h) {
-        return this.node;
+    onMounted(() => {
+      referenceElm = vm.subTree.children[0].children[0].el;
+      if (referenceElm) {
+        referenceElm.setAttribute('aria-describedby', tooltipId.value);
+        referenceElm.setAttribute('tabindex', props.tabindex);
+        on(referenceElm, 'mouseenter', show);
+        on(referenceElm, 'mouseleave', hide);
+        on(referenceElm, 'focus', () => {
+          if (!vm.slots.default || !vm.slots.default.length) {
+            handleFocus();
+            return;
+          }
+          const instance = vm.slots.default[0].componentInstance;
+          if (instance && instance.focus) {
+            instance.focus();
+          } else {
+            handleFocus();
+          }
+        });
+        on(referenceElm, 'blur', handleBlur);
+        on(referenceElm, 'click', removeFocusing);
       }
-    }).$mount();
+      // fix issue https://github.com/ElemeFE/element/issues/14424
+      // if (this.value && this.popperVM) {
+      //   this.popperVM.$nextTick(() => {
+      //     if (this.value) {
+      //       this.updatePopper();
+      //     }
+      //   });
+      // }
+    });
 
-    this.debounceClose = debounce(200, () => this.handleClosePopper());
-  },
-
-  render(h) {
-    if (this.popperVM) {
-      this.popperVM.node = (
-        <transition
-          name={ this.transition }
-          onAfterLeave={ this.doDestroy }>
-          <div
-            onMouseleave={ () => { this.setExpectedState(false); this.debounceClose(); } }
-            onMouseenter= { () => { this.setExpectedState(true); } }
-            ref="popper"
-            role="tooltip"
-            id={this.tooltipId}
-            aria-hidden={ (this.disabled || !this.showPopper) ? 'true' : 'false' }
-            v-show={!this.disabled && this.showPopper}
-            class={
-              ['el-tooltip__popper', 'is-' + this.effect, this.popperClass]
-            }>
-            { this.$slots.content || this.content }
-          </div>
-        </transition>);
+    function show() {
+      setExpectedState(true);
+      handleShowPopper();
     }
 
-    const firstElement = this.getFirstElement();
-    if (!firstElement) return null;
-
-    const data = firstElement.data = firstElement.data || {};
-    data.staticClass = this.addTooltipClass(data.staticClass);
-
-    return firstElement;
-  },
-
-  mounted() {
-    this.referenceElm = this.$el;
-    if (this.$el.nodeType === 1) {
-      this.$el.setAttribute('aria-describedby', this.tooltipId);
-      this.$el.setAttribute('tabindex', this.tabindex);
-      on(this.referenceElm, 'mouseenter', this.show);
-      on(this.referenceElm, 'mouseleave', this.hide);
-      on(this.referenceElm, 'focus', () => {
-        if (!this.$slots.default || !this.$slots.default.length) {
-          this.handleFocus();
-          return;
-        }
-        const instance = this.$slots.default[0].componentInstance;
-        if (instance && instance.focus) {
-          instance.focus();
-        } else {
-          this.handleFocus();
-        }
-      });
-      on(this.referenceElm, 'blur', this.handleBlur);
-      on(this.referenceElm, 'click', this.removeFocusing);
+    function hide() {
+      setExpectedState(false);
+      debounceClose();
     }
-    // fix issue https://github.com/ElemeFE/element/issues/14424
-    if (this.value && this.popperVM) {
-      this.popperVM.$nextTick(() => {
-        if (this.value) {
-          this.updatePopper();
-        }
-      });
+    function handleFocus() {
+      focusing.value = true;
+      show();
     }
-  },
-  watch: {
-    focusing(val) {
-      if (val) {
-        addClass(this.referenceElm, 'focusing');
-      } else {
-        removeClass(this.referenceElm, 'focusing');
-      }
+    function handleBlur() {
+      focusing.value = false;
+      hide();
     }
-  },
-  methods: {
-    show() {
-      this.setExpectedState(true);
-      this.handleShowPopper();
-    },
+    function removeFocusing() {
+      focusing.value = false;
+    }
 
-    hide() {
-      this.setExpectedState(false);
-      this.debounceClose();
-    },
-    handleFocus() {
-      this.focusing = true;
-      this.show();
-    },
-    handleBlur() {
-      this.focusing = false;
-      this.hide();
-    },
-    removeFocusing() {
-      this.focusing = false;
-    },
-
-    addTooltipClass(prev) {
+    function addTooltipClass(prev) {
       if (!prev) {
         return 'el-tooltip';
       } else {
         return 'el-tooltip ' + prev.replace('el-tooltip', '');
       }
-    },
+    }
 
-    handleShowPopper() {
-      if (!this.expectedState || this.manual) return;
-      clearTimeout(this.timeout);
-      this.timeout = setTimeout(() => {
-        this.showPopper = true;
-      }, this.openDelay);
+    function handleShowPopper() {
+      if (!expectedState || props.manual) return;
+      clearTimeout(timeout);
+      timeout = setTimeout(() => {
+        showPopper.value = true;
+      }, props.openDelay);
 
-      if (this.hideAfter > 0) {
-        this.timeoutPending = setTimeout(() => {
-          this.showPopper = false;
-        }, this.hideAfter);
+      if (props.hideAfter > 0) {
+        timeoutPending.value = setTimeout(() => {
+          showPopper.value = false;
+        }, props.hideAfter);
       }
-    },
+    }
 
-    handleClosePopper() {
-      if (this.enterable && this.expectedState || this.manual) return;
-      clearTimeout(this.timeout);
+    function handleClosePopper() {
+      if (expectedState || props.manual) return;
+      clearTimeout(timeout);
 
-      if (this.timeoutPending) {
-        clearTimeout(this.timeoutPending);
+      if (timeoutPending.value) {
+        clearTimeout(timeoutPending.value);
       }
-      this.showPopper = false;
 
-      if (this.disabled) {
-        this.doDestroy();
+      showPopper.value = false;
+
+      if (props.disabled) {
+        doDestroy();
       }
-    },
+    }
 
-    setExpectedState(expectedState) {
+    function setExpectedState(state) {
       if (expectedState === false) {
-        clearTimeout(this.timeoutPending);
+        clearTimeout(timeoutPending.value);
       }
-      this.expectedState = expectedState;
-    },
+      expectedState = state;
+    }
 
-    getFirstElement() {
-      const slots = this.$slots.default;
+    function getFirstElement() {
+      const slots = vm.slots.default();
       if (!Array.isArray(slots)) return null;
       let element = null;
       for (let index = 0; index < slots.length; index++) {
-        if (slots[index] && slots[index].tag) {
+        if (slots[index] && slots[index].shapeFlag) {
           element = slots[index];
         };
       }
       return element;
     }
-  },
 
-  beforeDestroy() {
-    this.popperVM && this.popperVM.$destroy();
-  },
+    watch(
+      focusing,
+      (val) => {
+        if (val) {
+          addClass(referenceElm, 'focusing');
+        } else {
+          removeClass(referenceElm, 'focusing');
+        }
+      }
+    );
 
-  destroyed() {
-    const reference = this.referenceElm;
-    if (reference.nodeType === 1) {
-      off(reference, 'mouseenter', this.show);
-      off(reference, 'mouseleave', this.hide);
-      off(reference, 'focus', this.handleFocus);
-      off(reference, 'blur', this.handleBlur);
-      off(reference, 'click', this.removeFocusing);
+    onBeforeUnmount(() => document.body.removeChild(popperRef.value));
+
+    onUnmounted(() => {
+      const reference = referenceElm;
+      if (reference.nodeType === 1) {
+        off(reference, 'mouseenter', show);
+        off(reference, 'mouseleave', hide);
+        off(reference, 'focus', handleFocus);
+        off(reference, 'blur', handleBlur);
+        off(reference, 'click', removeFocusing);
+      }
     }
+    );
+
+    const firstElement = getFirstElement();
+    if (!firstElement) return null;
+
+    const data = firstElement.data = firstElement.data || {};
+    data.staticClass = addTooltipClass(data.staticClass);
+    return {
+      showPopper,
+      popperRef,
+      tooltipId,
+      setExpectedState,
+      debounceClose,
+      doDestroy
+    };
+  },
+  render() {
+    return h(
+      Fragment,
+      null,
+      [
+        this.$slots.default(),
+        h(
+          Teleport,
+          {
+            to: 'body'
+          },
+          h(
+            Transition,
+            {
+              name: this.transition,
+              onAfterLeave: this.doDestroy
+            },
+            [
+              h(
+                'div',
+                {
+                  onmouseenter: () => {
+                    this.setExpectedState(false);
+                    this.debounceClose();
+                  },
+                  onmouseleave: () => { this.setExpectedState(true); },
+                  ref: 'popperRef',
+                  class: ['el-tooltip__popper', 'is-' + this.effect, this.popperClass],
+                  role: 'tooltip',
+                  id: this.tooltipId,
+                  ariaHidden: this.disabled || !this.showPopper ? 'true' : 'false',
+                  style: { display: 'none' }
+                },
+                [this.$slots.content || this.content]
+              )
+            ]
+          )
+        )
+      ]
+    );
   }
 };
