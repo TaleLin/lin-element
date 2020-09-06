@@ -64,8 +64,8 @@
   
       const instance = getCurrentInstance();
 
-      const elForm = inject('elForm', '');
-      const elFormItem = inject('elFormItem', '');
+      const elForm = inject('elForm', {});
+      const elFormItem = inject('elFormItem', {});
 
       const parent = useRadioGroup();
 

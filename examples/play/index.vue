@@ -14,8 +14,9 @@
     <play-badge v-if="route.value === '#badge'"></play-badge>
     <play-scrollbar v-if="route.value === '#scrollbar'"></play-scrollbar>
     <play-rate v-if="route.value === '#rate'"></play-rate>
-    <play-badge v-if="route.value"></play-badge>
-    <play-tool-tip ></play-tool-tip>
+    <play-badge v-if="route.value === '#badge'"></play-badge>
+    <play-tool-tip v-if="route.value === '#tooltip'"></play-tool-tip>
+    <play-checkbox v-if="route.value === '#checkbox'"></play-checkbox>
   </div>
 </template>
 
@@ -35,6 +36,7 @@
   import PlayScrollbar from './components/scrollbar'
   import PlayRate from './components/rate'
   import PlayToolTip from './components/tooltip'
+  import PlayCheckbox from './components/checkbox'
 
   import useRoute from './route'
 
@@ -54,7 +56,8 @@
       PlayBadge,
       PlayScrollbar,
       PlayRate,
-      PlayToolTip
+      PlayToolTip,
+      PlayCheckbox
     },
     data() {
       return {

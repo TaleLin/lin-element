@@ -41,7 +41,7 @@
     setup(props, ctx) {
   
       const instance = getCurrentInstance();
-      const elFormItem = inject('elFormItem', '');
+      const elFormItem = inject('elFormItem', {});
 
       const _elFormItemSize = computed(() => {
         return (elFormItem || {}).elFormItemSize;

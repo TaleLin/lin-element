@@ -79,7 +79,7 @@ export default {
   },
   setup(props, ctx) {
     let coreWidth;
-    const elForm = inject('elForm', '');
+    const elForm = inject('elForm', {});
     const instance = getCurrentInstance();
     if (!~[props.activeValue, props.inactiveValue].indexOf(props.modelValue)) {
       ctx.emit('input', props.inactiveValue);

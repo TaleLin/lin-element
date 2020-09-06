@@ -113,8 +113,8 @@ export default {
   },
   setup(props, ctx) {
     // const modelValue = useModelWrapper(props, 'modelValue');
-    const elForm = inject('elForm', '');
-    const elFormItem = inject('elFormItem', '');
+    const elForm = inject('elForm', {});
+    const elFormItem = inject('elFormItem', {});
     const instance = getCurrentInstance();
     let textareaCalcStyle = reactive({minHeight: '', height: ''});
     let hovering = ref(false);

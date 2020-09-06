@@ -102,8 +102,8 @@ export default {
     repeatClick: RepeatClick
   },
   setup(props, ctx) {
-    const elForm = inject('elForm', '');
-    const elFormItem = inject('elFormItem', '');
+    const elForm = inject('elForm', {});
+    const elFormItem = inject('elFormItem', {});
     const instance = getCurrentInstance();
     let currentValue = ref(0);
     let userInputObj = reactive({'userInput': null});

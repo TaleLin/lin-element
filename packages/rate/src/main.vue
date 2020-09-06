@@ -128,7 +128,7 @@
         ctx.emit('update:modelValue', 0);
       }
 
-      const elForm = inject('elForm', '');
+      const elForm = inject('elForm', {});
 
       const state = reactive({
         pointerAtLeftHalf: true,

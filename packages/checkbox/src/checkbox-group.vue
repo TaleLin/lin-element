@@ -1,21 +1,20 @@
-<script>
-  import Emitter from 'element-ui/src/mixins/emitter';
+<template>
+  <div class="el-checkbox-group" role="group" aria-label="checkbox-group">
+    <slot></slot>
+  </div>
+</template>
 
+
+<script>
+  import { computed, watch, provide, nextTick, toRefs } from 'vue';
+  import { useCheckboxGroup } from './useCheckbox';
   export default {
     name: 'ElCheckboxGroup',
 
     componentName: 'ElCheckboxGroup',
 
-    mixins: [Emitter],
-
-    inject: {
-      elFormItem: {
-        default: ''
-      }
-    },
-
     props: {
-      value: {},
+      modelValue: {},
       disabled: Boolean,
       min: Number,
       max: Number,
@@ -23,26 +22,43 @@
       fill: String,
       textColor: String
     },
+    emits: ['update:modelValue', 'change'],
+    setup(props, ctx) {
+      const { elFormItemSize } = useCheckboxGroup();
+  
+      const checkboxGroupSize = computed(
+        () => props.size || elFormItemSize.value || (ctx.$ELEMENT || {})
+      );
 
-    computed: {
-      _elFormItemSize() {
-        return (this.elFormItem || {}).elFormItemSize;
-      },
-      checkboxGroupSize() {
-        return this.size || this._elFormItemSize || (this.$ELEMENT || {}).size;
-      }
-    },
+      const changeEvent = value => {
+        ctx.emit('update:modelValue', value);
+        nextTick(() => {
+          ctx.emit('change', value);
+        });
+      };
 
-    watch: {
-      value(value) {
-        this.dispatch('ElFormItem', 'el.form.change', [value]);
-      }
+      const modelValue = computed({
+        get() {
+          return props.modelValue;
+        },
+        set(val) {
+          changeEvent(val);
+        }
+      });
+
+      provide('CheckboxGroup', {
+        name: 'ElCheckboxGroup',
+        modelValue,
+        ...toRefs(props),
+        checkboxGroupSize,
+        changeEvent
+      });
+
+      watch(() => props.modelValue, val => {
+        // TODO
+        // elFormItem.changeEvent(val);
+      });
     }
   };
 </script>
 
-<template>
-  <div class="el-checkbox-group" role="group" aria-label="checkbox-group">
-    <slot></slot>
-  </div>
-</template>
